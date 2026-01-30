@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"os"
+	"bufio"
+
+	"Smart-Calc/internal/calculator"
 )
 
 func main() {
@@ -21,10 +22,10 @@ func main() {
 }
 
 func handleArgs() error {
-	lines := os.Args[1:]
+	equations := os.Args[1:]
 	
-	for _, line := range lines {
-		err := handleLine(line)
+	for _, equation := range equations {
+		err := calculator.HandleEquation(equation)
 		if err != nil {
 			panic(err)
 		}
@@ -32,17 +33,12 @@ func handleArgs() error {
 	return nil
 }
 
-func handleLine(task string) error {
-	fmt.Print("Полученная задача на обработку: ", task, "\n")
-	return nil
-}
-
 func handleStdin() error {
 	scanner := bufio.NewScanner(os.Stdin)
 	
 	for scanner.Scan() {
-		line := scanner.Text()
-		err := handleLine(line)
+		equation := scanner.Text()
+		err := calculator.HandleEquation(equation)
 		if err != nil {
 			panic(err)
 		}

@@ -46,13 +46,15 @@ func tokenizeString(s string) ([]Token, error) {
 	
 	for i, ch := range s {
 		switch ch {
-		case '+', '-', '/', '*', '(', ')':
+		case '+', '-', '/', '*', '(', ')', ' ':
 			if (curNumber.Value != "") {
 				tokenList = append(tokenList, curNumber)
 				curNumber.Value = ""
 				curNumber.Position = 0
 			}
-			tokenList = append(tokenList, Token{tokenDict[ch], string(ch), i})
+			if (ch != ' ') {
+				tokenList = append(tokenList, Token{tokenDict[ch], string(ch), i})
+			}
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			if curNumber.Value == "" {
 				curNumber.Position = i
@@ -74,5 +76,4 @@ func tokenizeString(s string) ([]Token, error) {
 
 func stringNormalization(s *string) {
 	*s = strings.Trim(*s, "\n\r")
-	*s = strings.ReplaceAll(*s, " ", "")
 }
