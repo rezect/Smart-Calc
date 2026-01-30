@@ -1,3 +1,3 @@
-module smart_calc
+module Smart-Calc
 
 go 1.25.5
