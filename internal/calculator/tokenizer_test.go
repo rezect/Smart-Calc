@@ -199,7 +199,7 @@ func TestWithNonUtf8Chars(t *testing.T) {
 }
 
 func TestAllPossibleCharscters(t *testing.T) {
-	inputString := "1 3 4 5 6 7 8 9 0 + - / * ( )"
+	inputString := "1 2 3 4 5 6 7 8 9 0 + - / * ( )"
 	expectedTokenList := []Token{
 		{NUMBER, "1", 0},
 		{NUMBER, "2", 2},
@@ -210,12 +210,13 @@ func TestAllPossibleCharscters(t *testing.T) {
 		{NUMBER, "7", 12},
 		{NUMBER, "8", 14},
 		{NUMBER, "9", 16},
-		{PLUS, "+", 18},
-		{MINUS, "-", 20},
-		{DIVIDE, "/", 22},
-		{MULTIPLY, "*", 24},
-		{LPAREN, "(", 26},
-		{RPAREN, ")", 28},
+		{NUMBER, "0", 18},
+		{PLUS, "+", 20},
+		{MINUS, "-", 22},
+		{DIVIDE, "/", 24},
+		{MULTIPLY, "*", 26},
+		{LPAREN, "(", 28},
+		{RPAREN, ")", 30},
 	}
 	actualTokenList, err := tokenizeString(inputString)
 
