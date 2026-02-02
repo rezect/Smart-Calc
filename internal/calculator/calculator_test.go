@@ -1,9 +1,9 @@
 package calculator
 
 import (
+	"github.com/stretchr/testify/assert"
 	"math"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestHandleEquation(t *testing.T) {
@@ -44,7 +44,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 2.5,
 			wantErr:  false,
 		},
-		
+
 		// Операции с плавающей точкой
 		{
 			name:     "float addition",
@@ -58,7 +58,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 10,
 			wantErr:  false,
 		},
-		
+
 		// Приоритет операций
 		{
 			name:     "multiplication before addition",
@@ -78,7 +78,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 20,
 			wantErr:  false,
 		},
-		
+
 		// Сложные выражения со скобками
 		{
 			name:     "nested parentheses",
@@ -92,7 +92,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 10,
 			wantErr:  false,
 		},
-		
+
 		// Математические функции
 		{
 			name:     "simple sin",
@@ -130,7 +130,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 1,
 			wantErr:  false,
 		},
-		
+
 		// Комбинации функций и операций
 		{
 			name:     "function in expression",
@@ -156,7 +156,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 5,
 			wantErr:  false,
 		},
-		
+
 		// Константы
 		{
 			name:     "pi constant",
@@ -176,7 +176,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: math.Pi * 2,
 			wantErr:  false,
 		},
-		
+
 		// // Экспоненциальная запись
 		// {
 		// 	name:     "scientific notation",
@@ -190,7 +190,7 @@ func TestHandleEquation(t *testing.T) {
 		// 	expected: 2,
 		// 	wantErr:  false,
 		// },
-		
+
 		// Отрицательные числа
 		{
 			name:     "negative number addition",
@@ -210,7 +210,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 9,
 			wantErr:  false,
 		},
-		
+
 		// Граничные случаи и особые значения
 		{
 			name:     "division by one",
@@ -230,7 +230,7 @@ func TestHandleEquation(t *testing.T) {
 			expected: 7,
 			wantErr:  false,
 		},
-		
+
 		// Ошибки и некорректный ввод
 		{
 			name:     "empty string",
@@ -293,16 +293,16 @@ func TestHandleEquation(t *testing.T) {
 			wantErr:  true,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actual, err := HandleEquation(tt.input)
-			
+
 			if tt.wantErr {
 				assert.Error(t, err, "Expected error for input: %s", tt.input)
 			} else {
 				assert.NoError(t, err, "Unexpected error for input: %s", tt.input)
-				assert.InDelta(t, tt.expected, actual, 1e-9, 
+				assert.InDelta(t, tt.expected, actual, 1e-9,
 					"For input: %s, expected: %v, got: %v", tt.input, tt.expected, actual)
 			}
 		})

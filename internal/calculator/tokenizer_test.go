@@ -1,8 +1,8 @@
 package calculator
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func (actual Token) compareTokens(expected Token, test *testing.T) {

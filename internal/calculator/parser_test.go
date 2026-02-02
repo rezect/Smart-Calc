@@ -1,8 +1,8 @@
 package calculator
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 // isNewTokenMoreImportant
@@ -53,9 +53,9 @@ func TestTokensToRPN_SimplePlus(t *testing.T) {
 		{Number, "2", 2},
 		{Operator, "+", 1},
 	}
-	
+
 	actualTokens, err := tokensToRPN(inputTokens)
-	
+
 	assert.Nil(t, err)
 	assert.Equal(t, len(actualTokens), len(expectedTokens))
 
@@ -94,9 +94,9 @@ func TestTokensToRPN_Complex(t *testing.T) {
 		{Function, "sin", 0},
 		{Operator, "+", 0},
 	}
-	
+
 	actualTokens, err := tokensToRPN(inputTokens)
-	
+
 	assert.Nil(t, err)
 	assert.Equal(t, len(actualTokens), len(expectedTokens))
 
