@@ -13,31 +13,40 @@ var tokenTypePriority = map[string]int{
 	"^": 3,
 
 	// Functions
-	"sin": 9,
-	"cos": 9,
-	"tan": 9,
+	"sin":  9,
+	"cos":  9,
+	"tan":  9,
 	"sqrt": 9,
-	"log": 9,
-	"exp": 9,
+	"log":  9,
+	"exp":  9,
 }
 
 func isNewTokenMoreImportant(new Token, last Token) bool {
 	switch new.Type {
 	case Function:
 		switch last.Type {
-		case Function:
+		case Function, Lparen, Rparen:
 			return false
-		case Operator:
+		case Operator, UnaryMinus:
 			return true
 		default:
 			panic("Пришло ни функция, ни оператор")
 		}
 	case Operator:
 		switch last.Type {
-		case Function:
+		case Function, UnaryMinus, Lparen, Rparen:
 			return false
 		case Operator:
 			return tokenTypePriority[new.Value] > tokenTypePriority[last.Value]
+		default:
+			panic("Пришло ни функция, ни оператор")
+		}
+	case UnaryMinus:
+		switch last.Type {
+		case Function, UnaryMinus, Lparen, Rparen:
+			return false
+		case Operator:
+			return true
 		default:
 			panic("Пришло ни функция, ни оператор")
 		}
@@ -68,7 +77,7 @@ func tokensToRPN(tokens []Token) ([]Token, error) {
 		} else if token.Type == Function {
 			operators = append(operators, token)
 			isPrevTokenIsFunction = true
-		} else if token.Type == Operator {
+		} else if token.Type == Operator || token.Type == UnaryMinus {
 			if len(operators) == 0 {
 				operators = append(operators, token)
 			} else {
@@ -78,7 +87,7 @@ func tokensToRPN(tokens []Token) ([]Token, error) {
 				} else {
 					for len(operators) > 0 {
 						lastOperator = operators[len(operators)-1]
-						if tokenTypePriority[lastOperator.Value] < tokenTypePriority[token.Value] {
+						if lastOperator.Type == Lparen || isNewTokenMoreImportant(token, lastOperator) {
 							break
 						}
 						rpn = append(rpn, operators[len(operators)-1])
@@ -99,8 +108,6 @@ func tokensToRPN(tokens []Token) ([]Token, error) {
 				}
 			}
 			operators = operators[:len(operators)-1]
-		} else if token.Type == Comma {
-			continue
 		}
 	}
 	for len(operators) > 0 {

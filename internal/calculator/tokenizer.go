@@ -18,8 +18,8 @@ const (
 	Function
 	Lparen
 	Rparen
-	Comma
 	stringToken
+	UnaryMinus
 )
 
 var operatorsDict = map[rune]TokenType{
@@ -30,7 +30,6 @@ var operatorsDict = map[rune]TokenType{
 	'^': Operator,
 	'(': Lparen,
 	')': Rparen,
-	',': Comma,
 }
 
 var validFunctions = []string{
@@ -112,20 +111,9 @@ func tokenizeString(s string) ([]Token, error) {
 					return nil, fmt.Errorf("Неправильное расположение скобок")
 				}
 
-				if ch == '-' {
-					if len(tokenList) == 0 {
-						curToken.Type = Number
-						curToken.Value = "-"
-						curToken.Position = i
-						continue
-					} else {
-						if tt := tokenList[len(tokenList)-1].Type; tt == Lparen || tt == Comma || tt == Operator {
-							curToken.Type = Number
-							curToken.Value = "-"
-							curToken.Position = i
-							continue
-						}
-					}
+				if ch == '-' && isUnaryMinus(&tokenList) {
+					tokenList = append(tokenList, Token{UnaryMinus, "-", i})
+					continue
 				}
 
 				tokenList = append(tokenList, Token{operatorsDict[ch], string(ch), i})
@@ -180,4 +168,14 @@ func addToken(token *Token, tokenList *[]Token) error {
 	token.Position = 0
 
 	return nil
+}
+
+func isUnaryMinus(tokenList *[]Token) bool {
+	if len(*tokenList) == 0 {
+		return true
+	}
+	if tt := (*tokenList)[len(*tokenList)-1].Type; tt == Lparen || tt == Operator {
+		return true
+	}
+	return false
 }

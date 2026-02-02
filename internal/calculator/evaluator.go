@@ -1,9 +1,9 @@
 package calculator
 
 import (
-	"strconv"
 	"fmt"
 	"math"
+	"strconv"
 )
 
 func calculateEquation(tokens []Token) (float64, error) {
@@ -17,7 +17,7 @@ func calculateEquation(tokens []Token) (float64, error) {
 			}
 
 			stack = append(stack, floatNumber)
-		} else if t := token.Type; t == Operator || t == Function {
+		} else if t := token.Type; t == Operator || t == Function || t == UnaryMinus {
 			err := calculateLocalResult(&stack, token)
 			if err != nil {
 				return 0, err
@@ -65,8 +65,7 @@ func calculateLocalResult(stack *[]float64, t Token) error {
 		}
 
 		a := (*stack)[len(*stack)-1]
-		*stack = (*stack)[:(len(*stack) - 1)]
-		var result float64 = 0 
+		var result float64 = 0
 
 		switch t.Value {
 		case "sin":
@@ -82,7 +81,14 @@ func calculateLocalResult(stack *[]float64, t Token) error {
 		case "exp":
 			result = math.Exp(a)
 		}
-		*stack = append(*stack, result)
+		(*stack)[(len(*stack) - 1)] = result
+	case UnaryMinus:
+		if len(*stack) < 1 {
+			return fmt.Errorf("В стеке нет чисел для подсчета функции")
+		}
+
+		a := (*stack)[len(*stack)-1]
+		(*stack)[(len(*stack) - 1)] = -a
 	}
 
 	return nil
