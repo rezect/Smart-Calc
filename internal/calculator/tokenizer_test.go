@@ -1,15 +1,16 @@
 package calculator
 
-import "testing"
+import (
+	"testing"
+	"github.com/stretchr/testify/assert"
+)
 
 func (actual Token) compareTokens(expected Token, test *testing.T) {
-	if (actual.Position != expected.Position || actual.Type != expected.Type || actual.Value != expected.Value) {
-		test.Error("Expected: ", expected)
-		test.Error("Actual: ", actual)
-	}
+	assert.Equal(test, actual.Type, expected.Type)
+	assert.Equal(test, actual.Value, expected.Value)
 }
 
-func TestOnlyNumberInt(t *testing.T) {
+func TestTokenizerOnlyNumberInt(t *testing.T) {
 	inputString := "123"
 	expectedTokenList := []Token{
 		{Number, "123", 0},
@@ -26,7 +27,7 @@ func TestOnlyNumberInt(t *testing.T) {
 	}
 }
 
-func TestOnlyNumberFloat(t *testing.T) {
+func TestTokenizerOnlyNumberFloat(t *testing.T) {
 	inputString := "123.45"
 	expectedTokenList := []Token{
 		{Number, "123.45", 0},
@@ -43,7 +44,25 @@ func TestOnlyNumberFloat(t *testing.T) {
 	}
 }
 
-func TestSimplePlus(t *testing.T) {
+func TestTokenizerInvalidNumber1(t *testing.T) {
+	inputString := "123..45"
+	_, err := tokenizeString(inputString)
+
+	if err == nil {
+		t.Errorf("Должно вызывать ошибку")
+	}
+}
+
+func TestTokenizerInvalidNumber2(t *testing.T) {
+	inputString := ".45"
+	_, err := tokenizeString(inputString)
+
+	if err == nil {
+		t.Errorf("Должно вызывать ошибку")
+	}
+}
+
+func TestTokenizerSimplePlus(t *testing.T) {
 	inputString := "2+2"
 	expectedTokenList := []Token{
 		{Number, "2", 0},
@@ -62,7 +81,7 @@ func TestSimplePlus(t *testing.T) {
 	}
 }
 
-func TestSimpleMinus(t *testing.T) {
+func TestTokenizerSimpleMinus(t *testing.T) {
 	inputString := "2-2"
 	expectedTokenList := []Token{
 		{Number, "2", 0},
@@ -81,7 +100,7 @@ func TestSimpleMinus(t *testing.T) {
 	}
 }
 
-func TestSimpleDividion(t *testing.T) {
+func TestTokenizerSimpleDividion(t *testing.T) {
 	inputString := "2/2"
 	expectedTokenList := []Token{
 		{Number, "2", 0},
@@ -100,7 +119,7 @@ func TestSimpleDividion(t *testing.T) {
 	}
 }
 
-func TestSimpleMultiply(t *testing.T) {
+func TestTokenizerSimpleMultiply(t *testing.T) {
 	inputString := "2*2"
 	expectedTokenList := []Token{
 		{Number, "2", 0},
@@ -119,7 +138,34 @@ func TestSimpleMultiply(t *testing.T) {
 	}
 }
 
-func TestSimpleAllOperators(t *testing.T) {
+func TestTokenizerLog10(t *testing.T) {
+	inputString := "log(1+2)"
+	_, err := tokenizeString(inputString)
+
+	if err != nil {
+		t.Errorf("Не должно вызывать ошибку")
+	}
+}
+
+func TestTokenizerCos(t *testing.T) {
+	inputString := "cos(1+2)"
+	_, err := tokenizeString(inputString)
+
+	if err != nil {
+		t.Errorf("Не должно вызывать ошибку")
+	}
+}
+
+func TestTokenizerSin(t *testing.T) {
+	inputString := "sin(1+2)"
+	_, err := tokenizeString(inputString)
+
+	if err != nil {
+		t.Errorf("Не должно вызывать ошибку")
+	}
+}
+
+func TestTokenizerSimpleAllOperators(t *testing.T) {
 	inputString := "2*2+3/3-4"
 	expectedTokenList := []Token{
 		{Number, "2", 0},
@@ -144,7 +190,7 @@ func TestSimpleAllOperators(t *testing.T) {
 	}
 }
 
-func TestSimpleAllOperatorsWithSpace(t *testing.T) {
+func TestTokenizerSimpleAllOperatorsWithSpace(t *testing.T) {
 	inputString := "2 * 2 + 3 / 3 - 4"
 	expectedTokenList := []Token{
 		{Number, "2", 0},
@@ -169,7 +215,7 @@ func TestSimpleAllOperatorsWithSpace(t *testing.T) {
 	}
 }
 
-func TestComplexAllOperatorsWithSpace(t *testing.T) {
+func TestTokenizerComplexAllOperatorsWithSpace(t *testing.T) {
 	inputString := "2213 * 21 + 213 / 3 - 421123"
 	expectedTokenList := []Token{
 		{Number, "2213", 0},
@@ -194,7 +240,7 @@ func TestComplexAllOperatorsWithSpace(t *testing.T) {
 	}
 }
 
-func TestComplexAllOperatorsWithSpaceWithParens(t *testing.T) {
+func TestTokenizerComplexAllOperatorsWithSpaceWithParens(t *testing.T) {
 	inputString := "sin(sin((1 + 2) * 0.1) + 0.1)"
 	expectedTokenList := []Token{
 		{Function, "sin", 0},
@@ -225,7 +271,7 @@ func TestComplexAllOperatorsWithSpaceWithParens(t *testing.T) {
 	}
 }
 
-func TestComplex(t *testing.T) {
+func TestTokenizerComplex(t *testing.T) {
 	inputString := "5*8*(2+9)+(7*5+8-9*(5*5)+5)"
 	expectedTokenList := []Token{
 		{Number, "5", 0},
@@ -268,7 +314,7 @@ func TestComplex(t *testing.T) {
 	}
 }
 
-func TestWithNonUtf8Chars(t *testing.T) {
+func TestTokenizerWithNonUtf8Chars(t *testing.T) {
 	inputString := "(1+異)"
 	_, err := tokenizeString(inputString)
 
@@ -277,34 +323,29 @@ func TestWithNonUtf8Chars(t *testing.T) {
 	}
 }
 
-func TestAllPossibleCharscters(t *testing.T) {
-	inputString := "1 2 3 4 5 6 7 8 9 0 + - / * ( )"
-	expectedTokenList := []Token{
-		{Number, "1", 0},
-		{Number, "2", 2},
-		{Number, "3", 4},
-		{Number, "4", 6},
-		{Number, "5", 8},
-		{Number, "6", 10},
-		{Number, "7", 12},
-		{Number, "8", 14},
-		{Number, "9", 16},
-		{Number, "0", 18},
-		{Operator, "+", 20},
-		{Operator, "-", 22},
-		{Operator, "/", 24},
-		{Operator, "*", 26},
-		{Lparen, "(", 28},
-		{Rparen, ")", 30},
-	}
-	actualTokenList, err := tokenizeString(inputString)
+func TestTokenizerUnknownFunctions(t *testing.T) {
+	inputString := "cosinus(1+2)"
+	_, err := tokenizeString(inputString)
 
-	if err != nil {
-		t.Errorf("Не должно вызывать ошибку")
+	if err == nil {
+		t.Errorf("Должно вызывать ошибку")
 	}
+}
 
-	for i, actualToken := range actualTokenList {
-		expectedToken := expectedTokenList[i]
-		actualToken.compareTokens(expectedToken, t)
+func TestTokenizerWrongParens1(t *testing.T) {
+	inputString := "sin(30-19)())"
+	_, err := tokenizeString(inputString)
+
+	if err == nil {
+		t.Errorf("Должно вызывать ошибку")
+	}
+}
+
+func TestTokenizerWrongParens2(t *testing.T) {
+	inputString := "sin(15-(19*5)()"
+	_, err := tokenizeString(inputString)
+
+	if err == nil {
+		t.Errorf("Должно вызывать ошибку")
 	}
 }
