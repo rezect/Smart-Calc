@@ -1,48 +1,40 @@
 package main
 
 import (
-	"os"
 	"bufio"
+	"fmt"
+	"os"
 
 	"Smart-Calc/internal/calculator"
 )
 
 func main() {
 	if (len(os.Args) > 1) {
-		err := handleArgs()
-		if err != nil {
-			panic(err)
-		}
+		handleArgs()
 	} else {
-		err := handleStdin()
-		if err != nil {
-			panic(err)
-		}
+		handleStdin()
 	}
 }
 
-func handleArgs() error {
+func handleArgs() {
 	equations := os.Args[1:]
 	
 	for _, equation := range equations {
 		_, err := calculator.HandleEquation(equation)
 		if err != nil {
-			panic(err)
+			fmt.Printf("[ERROR] Incorrect equation: %s\n", equation)
 		}
 	}
-	return nil
 }
 
-func handleStdin() error {
+func handleStdin() {
 	scanner := bufio.NewScanner(os.Stdin)
 	
 	for scanner.Scan() {
 		equation := scanner.Text()
 		_, err := calculator.HandleEquation(equation)
 		if err != nil {
-			panic(err)
+			fmt.Printf("[ERROR] Incorrect equation: %s\n", equation)
 		}
 	}
-
-	return nil
 }
