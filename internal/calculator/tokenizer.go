@@ -2,6 +2,9 @@ package calculator
 
 import (
 	"fmt"
+	"math"
+	"slices"
+	"strconv"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -16,6 +19,7 @@ const (
 	Lparen
 	Rparen
 	Comma
+	stringToken
 )
 
 var operatorsDict = map[rune]TokenType{
@@ -23,6 +27,7 @@ var operatorsDict = map[rune]TokenType{
 	'-': Operator,
 	'/': Operator,
 	'*': Operator,
+	'^': Operator,
 	'(': Lparen,
 	')': Rparen,
 	',': Comma,
@@ -31,19 +36,43 @@ var operatorsDict = map[rune]TokenType{
 var validFunctions = []string{
 	"sin",
 	"cos",
+	"tan",
+	"sqrt",
+	"log",
+	"exp",
 }
 
-func isFunctionValid(fName string) bool {
-	for _, validFuncName := range validFunctions {
-		if validFuncName == fName {
-			return true
-		}
+var constantsValues = map[string]float64{
+	"pi": math.Pi,
+	"e":  math.E,
+}
+
+func parseFunction(t *Token) bool {
+	if slices.Contains(validFunctions, t.Value) {
+		t.Type = Function
+		return true
 	}
+
+	return false
+}
+
+func parseConstant(t *Token) bool {
+	validConstants := make([]string, 0, len(constantsValues))
+	for k := range constantsValues {
+		validConstants = append(validConstants, k)
+	}
+
+	if slices.Contains(validConstants, t.Value) {
+		t.Type = Number
+		t.Value = strconv.FormatFloat(constantsValues[t.Value], 'f', -1, 64)
+		return true
+	}
+
 	return false
 }
 
 type Token struct {
-	Type     TokenType	// Number, Operator, Function, Lparen, Rparen
+	Type     TokenType // Number, Operator, Function, Lparen, Rparen
 	Value    string
 	Position int
 }
@@ -52,30 +81,57 @@ func tokenizeString(s string) ([]Token, error) {
 	if len(s) != utf8.RuneCountInString(s) {
 		return nil, fmt.Errorf("Вы использовали неподдерживаемые символы")
 	}
-	
+
 	stringNormalization(&s)
 
 	tokenList := make([]Token, 0)
 	var curToken = Token{Number, "", 0}
+	var parenCounter int = 0
 
 	var allOperators strings.Builder
 	for k := range operatorsDict {
 		allOperators.WriteString(string(k))
 	}
-	
+
 	for i, ch := range s {
 		if strings.ContainsRune(allOperators.String(), ch) || ch == ' ' {
-			if (curToken.Value != "") {
+			if curToken.Value != "" {
 				err := addToken(&curToken, &tokenList)
 				if err != nil {
 					return nil, err
 				}
 			}
-			if (ch != ' ') {
+			if ch != ' ' {
+				switch ch {
+				case '(':
+					parenCounter++
+				case ')':
+					parenCounter--
+				}
+				if parenCounter < 0 {
+					return nil, fmt.Errorf("Неправильное расположение скобок")
+				}
+
+				if ch == '-' {
+					if len(tokenList) == 0 {
+						curToken.Type = Number
+						curToken.Value = "-"
+						curToken.Position = i
+						continue
+					} else {
+						if tt := tokenList[len(tokenList)-1].Type; tt == Lparen || tt == Comma || tt == Operator {
+							curToken.Type = Number
+							curToken.Value = "-"
+							curToken.Position = i
+							continue
+						}
+					}
+				}
+
 				tokenList = append(tokenList, Token{operatorsDict[ch], string(ch), i})
 			}
 		} else if unicode.IsDigit(ch) || ch == '.' {
-			if ch == '.' && curToken.Value == "" {
+			if ch == '.' && (curToken.Value == "" || curToken.Value[len(curToken.Value)-1] == '.') {
 				return nil, fmt.Errorf("Неправильно расположенный разделитель нецелого числа")
 			}
 			if curToken.Value == "" {
@@ -89,7 +145,7 @@ func tokenizeString(s string) ([]Token, error) {
 				curToken.Position = i
 			}
 
-			curToken.Type = Function
+			curToken.Type = stringToken
 			curToken.Value += string(ch)
 		} else {
 			return nil, fmt.Errorf("Встречен неизвестный символ на позиции %v", i)
@@ -97,7 +153,14 @@ func tokenizeString(s string) ([]Token, error) {
 	}
 
 	if curToken.Value != "" {
-		tokenList = append(tokenList, curToken)
+		err := addToken(&curToken, &tokenList)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if parenCounter != 0 {
+		return nil, fmt.Errorf("Неправильное расположение скобок")
 	}
 
 	return tokenList, nil
@@ -108,10 +171,8 @@ func stringNormalization(s *string) {
 }
 
 func addToken(token *Token, tokenList *[]Token) error {
-	if token.Type == Function {
-		if !isFunctionValid(token.Value) {
-			return fmt.Errorf("Неизвестное название функции: %v", token.Value)
-		}
+	if token.Type == stringToken && !(parseFunction(token) || parseConstant(token)) {
+		return fmt.Errorf("Строка не является ни функцияей, ни константой")
 	}
 	*tokenList = append(*tokenList, *token)
 	token.Type = Number

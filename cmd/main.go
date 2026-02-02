@@ -25,7 +25,7 @@ func handleArgs() error {
 	equations := os.Args[1:]
 	
 	for _, equation := range equations {
-		err := calculator.HandleEquation(equation)
+		_, err := calculator.HandleEquation(equation)
 		if err != nil {
 			panic(err)
 		}
@@ -38,7 +38,7 @@ func handleStdin() error {
 	
 	for scanner.Scan() {
 		equation := scanner.Text()
-		err := calculator.HandleEquation(equation)
+		_, err := calculator.HandleEquation(equation)
 		if err != nil {
 			panic(err)
 		}
